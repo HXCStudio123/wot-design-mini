@@ -10,12 +10,24 @@
     <!-- 成功时展示图片 -->
     <view class="wd-upload__status-content">
       <image
+        jd:if="{{accept === 'image'}}"
         src="{{file.url}}"
         mode="aspectFit"
         class="wd-upload__picture"
         bindtap="onPreviewImage"
         data-index="{{index}}"
       />
+      <video
+        jd:if="{{accept === 'video'}}"
+        poster=""
+        controls="{{true}}"
+        src="{{file.url}}"
+        class="wd-upload__picture"
+        bindtap="onPreviewVideo"
+        data-index="{{index}}"
+      >
+        <view class="wd-upload__video-init"/>
+      </video>
     </view>
 
     <view
@@ -29,7 +41,7 @@
       >
         <wd-loading
           type="circular-ring"
-          size="24"
+          size="24px"
           color="{{loadingColor}}"
         />
         <text class="wd-upload__progress-txt">{{file.percent}}%</text>

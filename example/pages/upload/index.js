@@ -123,5 +123,15 @@ Page({
     this.setData({
       fileList11: event.detail.fileList
     })
+  },
+  test () {
+    jd.chooseVideo({
+      success () {
+        console.log('成功')
+      },
+      fail () {
+        console.log('失败')
+      }
+    })
   }
 })

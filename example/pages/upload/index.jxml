@@ -1,5 +1,14 @@
 <wd-message-box id="wd-message-box"></wd-message-box>
 <wd-toast id="wd-toast"></wd-toast>
+<button bindtap="test">测试</button>
+<demo-block title="基本用法">
+  <wd-upload
+    file-list="{{fileList1}}"
+    action="{{action}}"
+    accept="video"
+    bind:change="handleChange1"
+  ></wd-upload>
+</demo-block>
 <demo-block title="基本用法">
   <wd-upload
     file-list="{{fileList1}}"

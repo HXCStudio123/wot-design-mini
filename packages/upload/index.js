@@ -1,7 +1,7 @@
 import VueComponent from '../common/component'
 import { getType, context, isEqual } from '../common/util'
-import { chooseImageProps, uploadProps } from './props'
-import { chooseFile } from './utils'
+import { commonProps, videoProps, fileProps, uploadProps } from './props'
+import { isVideo, choose } from './utils'
 
 VueComponent({
   externalClasses: [
@@ -12,7 +12,9 @@ VueComponent({
   behaviors: ['jd://form-field'],
 
   props: {
-    ...chooseImageProps,
+    ...commonProps,
+    ...fileProps,
+    ...videoProps,
     ...uploadProps,
     // 上传相关
     action: {
@@ -117,6 +119,7 @@ VueComponent({
      * @param {Object} file 上传的文件
      */
     initFile (file) {
+      console.log('chushihua: ', file)
       // 状态初始化
       const initState = {
         uid: context.id++,
@@ -183,6 +186,7 @@ VueComponent({
         this.setData({ uploadFiles })
         this.$emit('progress', { res, file })
       }
+      console.log('上传中', res.progress)
     },
 
     /**
@@ -234,47 +238,53 @@ VueComponent({
         multiple,
         maxSize,
         accept,
-        sizeType,
         uploadFiles,
         limit,
-        sourceType,
         beforeUpload
       } = this.data
 
-      // 设置为只选择图片的时候使用 chooseImage 来实现
-      if (accept === 'image') {
-        // 文件选择
-        chooseFile({
-          multiple,
-          sizeType,
-          sourceType,
-          maxCount: limit ? limit - uploadFiles.length : 9
-        }).then((res) => {
-          // 成功选择初始化file
-          let files = null
+      // 文件选择
+      choose({
+        ...this.data,
+        maxCount: limit ? limit - uploadFiles.length : 9
+      }).then((res) => {
+        // 成功选择初始化file
+        let files = null
+        console.log('成功', res)
+
+        if (isVideo(res, accept)) {
+          files = [{
+            path: res.tempFilePath,
+            ...res
+          }]
+          console.log('是video', files)
+        } else {
           files = Array.prototype.slice.call(res.tempFiles)
           // 单选只有一个
           if (!multiple) { files = files.slice(0, 1) }
+          console.log('不是video', files)
+        }
+        console.log('正在上传', files)
+        // 遍历列表逐个初始化上传参数
+        const mapFiles = (files) => {
+          files.forEach(file => {
+            console.log('遍历中')
+            file.size <= maxSize ? this.initFile(file) : this.$emit('oversize', { file })
+          })
+        }
 
-          // 遍历列表逐个初始化上传参数
-          const mapFiles = (files) => {
-            files.forEach(file => {
-              file.size <= maxSize ? this.initFile(file) : this.$emit('oversize', { file })
-            })
-          }
-
-          // 上传前的钩子
-          if (beforeUpload) {
-            beforeUpload(files, isPass => {
-              isPass && mapFiles(files)
-            })
-          } else {
-            mapFiles(files)
-          }
-        }).catch(error => {
-          this.$emit('chooseerror', { error })
-        })
-      }
+        // 上传前的钩子
+        if (beforeUpload) {
+          beforeUpload(files, isPass => {
+            isPass && mapFiles(files)
+          })
+        } else {
+          console.log('上传前')
+          mapFiles(files)
+        }
+      }).catch(error => {
+        this.$emit('chooseerror', { error })
+      })
     },
 
     /**
@@ -333,7 +343,7 @@ VueComponent({
         }
       })
     },
-
+    onPreviewVideo () {},
     onPreviewImage (event) {
       const { index } = event.currentTarget.dataset
       const { uploadFiles, beforePreview } = this.data

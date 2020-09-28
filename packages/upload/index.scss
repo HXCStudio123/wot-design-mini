@@ -33,28 +33,33 @@
   @include e(video-init) {
     width: $-upload-size;
     height: $-upload-size;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0,0,0,.65);
+    position: absolute;
+    left: 0;
+    top: 0;
+    
     &::after {
       content: "";
       position: absolute;
-      width: 30px;
-      height: 30px;
+      width: 18px;
+      height: 18px;
       border-radius: 50%;
-      border: 2px solid #fff;
+      border: 1px solid #fff;
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
+      box-shadow: 0 0 4px 8px rgba(255, 255, 255, 0.15);
     }
     &::before {
       content: "";
       position: absolute;
       width: 1px;
-      border: 10px solid transparent;
-      border-left-color: red;
-      border-left-width: 14px;
+      border: 5px solid transparent;
+      border-left-color: #fff;
+      border-left-width: 8px;
       left: 50%;
       top: 50%;
-      transform: translate(-5px, -10px);
+      transform: translate(-3px, -5px);
     }
   }
   @include e(evoke-num) {

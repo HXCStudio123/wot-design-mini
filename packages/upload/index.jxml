@@ -17,17 +17,18 @@
         bindtap="onPreviewImage"
         data-index="{{index}}"
       />
-      <video
-        jd:if="{{accept === 'video'}}"
-        poster=""
-        controls="{{true}}"
-        src="{{file.url}}"
-        class="wd-upload__picture"
-        bindtap="onPreviewVideo"
-        data-index="{{index}}"
-      >
-        <view class="wd-upload__video-init"/>
-      </video>
+      <view jd:if="{{accept === 'video'}}">
+        <view class="wd-upload__video-init" bindtap="onPreviewVideo1"/>
+        <video
+          id="{{ 'wdVideo' + file.uid }}"
+          poster=""
+          controls="{{true}}"
+          src="{{file.url}}"
+          class="wd-upload__picture"
+          bindtap="onPreviewVideo"
+          data-index="{{index}}"
+        ></video>
+      </view>
     </view>
 
     <view

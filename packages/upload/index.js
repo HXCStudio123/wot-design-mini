@@ -119,7 +119,6 @@ VueComponent({
      * @param {Object} file 上传的文件
      */
     initFile (file) {
-      console.log('chushihua: ', file)
       // 状态初始化
       const initState = {
         uid: context.id++,
@@ -170,6 +169,11 @@ VueComponent({
         this.setData({ uploadFiles })
         this.$emit('change', { fileList: uploadFiles })
         this.$emit('success', { file, fileList: uploadFiles })
+        // 初始化video
+        if (this.data.accept === 'video') {
+          this.videoContext = jd.createVideoContext('wdVideo' + file.uid)
+          console.log(this.videoContext)
+        }
       }
     },
 
@@ -250,25 +254,20 @@ VueComponent({
       }).then((res) => {
         // 成功选择初始化file
         let files = null
-        console.log('成功', res)
 
         if (isVideo(res, accept)) {
           files = [{
             path: res.tempFilePath,
             ...res
           }]
-          console.log('是video', files)
         } else {
           files = Array.prototype.slice.call(res.tempFiles)
           // 单选只有一个
           if (!multiple) { files = files.slice(0, 1) }
-          console.log('不是video', files)
         }
-        console.log('正在上传', files)
         // 遍历列表逐个初始化上传参数
         const mapFiles = (files) => {
           files.forEach(file => {
-            console.log('遍历中')
             file.size <= maxSize ? this.initFile(file) : this.$emit('oversize', { file })
           })
         }
@@ -279,7 +278,6 @@ VueComponent({
             isPass && mapFiles(files)
           })
         } else {
-          console.log('上传前')
           mapFiles(files)
         }
       }).catch(error => {
@@ -343,7 +341,13 @@ VueComponent({
         }
       })
     },
-    onPreviewVideo () {},
+    onPreviewVideo () {
+      console.log('点击video')
+    },
+    onPreviewVideo1 () {
+      console.log('点击图片')
+      this.videoContext.play()
+    },
     onPreviewImage (event) {
       const { index } = event.currentTarget.dataset
       const { uploadFiles, beforePreview } = this.data

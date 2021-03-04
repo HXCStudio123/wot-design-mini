@@ -1,0 +1,9 @@
+<image-cropper style="opacity: {{showExm ? 1 : 0}}" id="image-cropper" limit_move="{{true}}" disable_rotate="{{true}}" width="{{width}}" height="{{height}}" imgSrc="{{src}}" bindload="cropperload" bindimageload="loadimage" bindtapcut="clickcut"></image-cropper>
+<wd-img-cropper id="wd-img-cropper" style="opacity: {{showCus ? 1 : 0}}" show="{{show}}" img-src="{{src}}"></wd-img-cropper>
+<button bindtap="test1">打开示例裁剪框</button>
+<button bindtap="test2">打开自定义裁剪框</button>
+
+<!-- <button bindtap="rotate" style="position: fixed;bottom: 20px; z-index: 3;">guanbi</button> -->
+ <!-- <button bindtap="test">修改src</button>
+<canvas canvas-id="myCanvas" style="border: 1px solid;"/>
+<image src="{{src}}" style="width: '';height: '';"/> -->

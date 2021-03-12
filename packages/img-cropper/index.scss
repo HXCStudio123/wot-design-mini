@@ -29,7 +29,7 @@
     .wd-img-cropper__cut--right {
       // 拖动中背景蒙层为0 拖动结束为0.85
       background-color: rgba(0, 0, 0, 0.85);
-      transition-duration: 0.2s;
+      transition: background 0.2s;
       @include when(hightlight) {
         background-color: rgba(0, 0, 0, 0);
       }
@@ -161,24 +161,26 @@
   @include e(canvas) {
     position: fixed;
     background: white;
-    width:150px;
-    height:150px;
+    width: 150px;
+    height: 150px;
     z-index: 10;
-    top:-200%;
-    pointer-events:none;
+    top: -200%;
+    pointer-events: none;
   }
   @include e(footer) {
     position: fixed;
     z-index: 10;
     bottom: 10px;
     width: 100%;
+    height: 15vh;
     text-align: center;
     @include m(button) {
       position: relative;
       text-align: left;
       margin: 0 20px;
-      height: 32px;
-      line-height: 32px;
+      padding-top: 4vh;
+      // line-height: 32px;
+      box-sizing: border-box;
       .is-cancel {
         display: inline-block;
         color: #fff;
@@ -187,7 +189,7 @@
       .is-confirm {
         position: absolute;
         right: 0;
-        height: 32px;
+        // height: 32px;
         width: 56px;
         border-radius: 16px;
         font-size: 16px;

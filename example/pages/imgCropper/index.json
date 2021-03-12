@@ -3,6 +3,7 @@
   "usingComponents": {
     "demo-block": "../../components/demo-block/index",
     "wd-img-cropper": "../../wot-design/img-cropper/index",
-    "image-cropper": "../../components/src/index"
+    "wd-button": "../../wot-design/button/index",
+    "wd-img": "../../wot-design/img/index"
   }
 }

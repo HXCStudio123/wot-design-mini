@@ -1,46 +1,72 @@
 Page({
   data: {
-    src: '',
-    width: 250, // 宽度
-    height: 250, // 高度
-    show: true,
-    showExm: false,
-    showCus: false
+    src: 'https://img13.360buyimg.com/img/jfs/t1/112383/24/3812/492876/5eaa67eaE26b243c5/0380f68ca36fe050.png',
+    imgSrc: '',
+    show: false,
+    changeX: 0,
+    changeY: 0
   },
   onLoad () {
     // 创建canvas绘图上下文
-    const ctx = jd.createCanvasContext('myCanvas')
-    ctx.setFillStyle('red')
+    this.ctx = jd.createCanvasContext('myCanvas')
     // fillRect(x, y, width, height)
-    ctx.fillRect(20, 20, 150, 75)
-    ctx.draw()
+    // 移动的是canvas相对图片的距离  图片相对于canvas 向上向左移动了50
+    this.ctx.translate(0, 0)
+    // this.ctx.rotate(90 * Math.PI / 180)
+    // drawImage 的 旋转是根据以当前角度为坐标原点xy轴，并在x y轴上移动
+    this.ctx.drawImage(this.data.src, -200, -200, 400, 400)
+    this.ctx.draw()
+  },
+  changeX () {
+    this.setData({
+      changeY: this.data.changeY - 5
+    })
+    // this.ctx.rotate(45 * Math.PI / 180)
+    this.ctx.translate(-50, -50)
+
+    this.ctx.rotate(this.data.changeY * Math.PI / 180)
+    this.ctx.drawImage(this.data.imgSrc, 0, 0, 400, 400)
+    this.ctx.draw()
+  },
+  changeY () {
+    this.setData({
+      changeY: this.data.changeY + 10
+    })
+    this.ctx.translate(-50, -50)
+    this.ctx.rotate(45 * Math.PI / 180)
+    // drawImage 的 旋转是根据以当前角度为坐标原点xy轴，并在x y轴上移动
+    this.ctx.drawImage(this.data.imgSrc, this.data.changeY, -200, 400, 400)
+    this.ctx.draw()
   },
   test () {
+    // 创建canvas绘图上下文
+    this.ctx = jd.createCanvasContext('myCanvas')
+    // fillRect(x, y, width, height)
+    // 移动的是canvas相对图片的距离  图片相对于canvas 向上向左移动了50
+    this.ctx.translate(0, 0)
+    // this.ctx.rotate(90 * Math.PI / 180)
+    // drawImage 的 旋转是根据以当前角度为坐标原点xy轴，并在x y轴上移动
+    this.ctx.drawImage(this.data.imgSrc, -200, -200, 400, 400)
+    this.ctx.draw()
     const that = this
-    const ppi = jd.getSystemInfoSync().pixelRatio
-    console.log('ppi: ', ppi)
     jd.canvasToTempFilePath({
-      x: 20,
-      y: 20,
-      width: 150,
-      height: 75,
-      destWidth: 70 * ppi,
-      destHeight: 70 * ppi,
+      width: 400,
+      height: 400,
+      destWidth: 400,
+      destHeight: 400,
       canvasId: 'myCanvas',
       success (res) {
         console.log('成功', res)
         that.setData({
-          src: res.tempFilePath
+          src: res.tempFilePath,
+          imgSrc: res.tempFilePath
         })
-        // jd.previewImage({
-        //   current: res.tempFilePath, // 当前显示图片的http链接
-        //   urls: [res.tempFilePath] // 需要预览的图片http链接列表
-        // })
       }
     })
   },
   upload () {
     const that = this
+
     this.wdcropper = this.selectComponent('#wd-img-cropper')
     jd.chooseImage({
       count: 1,
@@ -53,60 +79,31 @@ Page({
         const tempFilePaths = res.tempFilePaths[0]
         // 重置图片角度、缩放、位置
         that.wdcropper.resetImg()
+        jd.hideLoading()
         that.setData({
-          src: tempFilePaths
+          show: true,
+          src: tempFilePaths,
+          imgSrc: tempFilePaths
         })
       }
     })
   },
-  rotate () {
-    // 在用户旋转的基础上旋转90°
-    this.cropper = this.selectComponent('#image-cropper')
-    this.cropper.setAngle(this.cropper.data.angle += 90)
+  confirm (event) {
+    const { url } = event.detail
+    console.log('345678', event)
+    this.setData({
+      show: false,
+      src: url,
+      imgSrc: url
+    })
   },
   cropperload (e) {
     console.log('cropper初始化完成')
   },
-  loadimage (e) {
-    console.log('图片加载完成', e.detail)
-    jd.hideLoading()
-    this.cropper = this.selectComponent('#image-cropper')
-    // 重置图片角度、缩放、位置
-    this.cropper.imgReset()
-  },
-  clickcut (e) {
-    console.log(e.detail)
-    // 点击裁剪框阅览图片
+  preview () {
     jd.previewImage({
-      current: e.detail.url, // 当前显示图片的http链接
-      urls: [e.detail.url] // 需要预览的图片http链接列表
-    })
-  },
-  test1 () {
-    this.setData({
-      showExm: true
-    })
-    // 获取到image-cropper实例
-    this.cropper = this.selectComponent('#image-cropper')
-    // 开始裁剪
-    this.setData({
-      src: 'https://img13.360buyimg.com/venderadsman/jfs/t1/156393/5/10597/52828/60330904E8e3b7ffc/d6bbe56bcdc35e0d.jpg'
-    })
-  },
-  test2 () {
-    this.upload()
-    jd.hideLoading()
-    // this.setData({
-    //   src: 'https://img13.360buyimg.com/venderadsman/jfs/t1/156393/5/10597/52828/60330904E8e3b7ffc/d6bbe56bcdc35e0d.jpg'
-    // })
-    this.setData({
-      showCus: true
-    })
-  },
-  test3 () {
-    // //开始裁剪
-    this.setData({
-      src: 'https://img13.360buyimg.com/venderadsman/jfs/t1/156393/5/10597/52828/60330904E8e3b7ffc/d6bbe56bcdc35e0d.jpg'
+      current: this.data.imgSrc, // 当前显示图片的http链接
+      urls: [this.data.imgSrc] // 需要预览的图片http链接列表
     })
   }
 })

@@ -1,15 +1,15 @@
 import VueComponent from '../common/component'
-// 延时动画设置
-let IS_TOUCH_END = false
+
 // 延时动画设置
 let CHANGE_TIME = null
 // 移动节流
 let MOVE_THROTTLE = null
 // 节流标志
 let MOVE_THROTTLE_FLAG = true
+// 顶部裁剪框占比
+const TOP_PERCENT = 0.85
 
 VueComponent({
-  externalClasses: [''],
   props: {
     show: {
       type: Boolean,
@@ -17,28 +17,40 @@ VueComponent({
       observer (val) {
         if (val) {
           this.data.info = jd.getSystemInfoSync()
-          this.data.cutSize = this.data.info.windowWidth - this.data.offset * 2
+          const cutSize = this.data.info.windowWidth - this.data.offset * 2
           this.setData({
-            cutWidth: this.data.cutSize,
-            cutHeight: this.data.cutSize,
-            cutTop: (this.data.info.windowHeight - this.data.cutSize) * 0.5,
+            cutWidth: cutSize,
+            cutHeight: cutSize,
+            cutTop: (this.data.info.windowHeight * TOP_PERCENT - cutSize) / 2,
             cutLeft: this.data.offset,
-            canvasHeight: this.data.cutSize,
-            canvasWidth: this.data.cutSize
+            canvasScale: this.data.info.pixelRatio,
+            canvasHeight: cutSize,
+            canvasWidth: cutSize
           })
           this.initCanvas()
           this.data.imgSrc && this.loadImg()
-          // 设置图片<裁剪框尺寸
-          this.computeCutSize()
         } else {
           this.resetImg()
         }
       }
     },
+    // 两边距裁剪框的距离
     offset: {
       type: Number,
       value: 20
     },
+    /** canvas绘图参数 start **/
+    // canvasToTempFilePath —— fileType
+    fileType: {
+      type: String,
+      value: 'png'
+    },
+    // canvasToTempFilePath —— quality
+    quality: {
+      type: Number,
+      value: 1
+    },
+    /** canvas绘图参数 end **/
     // 图片源路径
     imgSrc: {
       type: null,
@@ -52,11 +64,6 @@ VueComponent({
       type: Number,
       value: 3
     },
-    // 最小缩放
-    minScale: {
-      type: Number,
-      value: 0.5
-    },
     /** Watching Data **/
     // 旋转角度
     imgAngle: {
@@ -65,7 +72,7 @@ VueComponent({
       observer (val) {
         if (val % 90) {
           this.setData({
-            angle: Math.round(val / 90) * 90
+            imgAngle: Math.round(val / 90) * 90
           })
         }
       }
@@ -90,12 +97,14 @@ VueComponent({
     // 裁剪框的宽高
     cutWidth: 0,
     cutHeight: 0,
+    cutScale: 2,
     // 裁剪框的距顶距左
     cutLeft: 0,
     cutTop: 0,
     // canvas最终成像宽高
     canvasWidth: '',
     canvasHeight: '',
+    canvasScale: 2,
     // 当前缩放大小
     imgScale: 1,
     // 图片宽高
@@ -103,10 +112,10 @@ VueComponent({
     imgHeight: null,
     // 图片中心轴点距左的距离
     imgLeft: jd.getSystemInfoSync().windowWidth / 2,
-    imgTop: jd.getSystemInfoSync().windowHeight / 2,
-    // 是否高亮背景(拖动时高亮 拖动结束添加阴影)
-    isHighlight: false,
-    // 记录移动中的双指位置 [0][1]分别代表两根手指
+    imgTop: jd.getSystemInfoSync().windowHeight / 2 * TOP_PERCENT,
+    // 是否移动中设置 同时控制背景颜色是否高亮
+    IS_TOUCH_END: true,
+    // 记录移动中的双指位置 [0][1]分别代表两根手指 [1]做待用参数
     movingPosRecord: [{
       x: '',
       y: ''
@@ -119,12 +128,6 @@ VueComponent({
   },
 
   methods: {
-    /**
-     * @description 对外暴露：获取截取后图片
-     */
-    getImg () {
-      // 外部获取图片
-    },
     /**
      * @description 对外暴露：控制旋转角度
      * @param {Number} angle 角度
@@ -139,7 +142,7 @@ VueComponent({
       this.detectImgPosIsEdge()
     },
     /**
-     * @description 初始化图片的大小和角度以及距离
+     * @description 对外暴露：初始化图片的大小和角度以及距离
      */
     resetImg () {
       const { windowHeight, windowWidth } = jd.getSystemInfoSync()
@@ -148,7 +151,7 @@ VueComponent({
         imgScale: 1 || imgScale,
         imgAngle: 0 || imgAngle,
         imgLeft: windowWidth / 2,
-        imgTop: windowHeight / 2
+        imgTop: windowHeight / 2 * TOP_PERCENT
       })
     },
 
@@ -156,10 +159,10 @@ VueComponent({
      * @description 加载图片资源文件，并初始化裁剪框内图片信息
      */
     loadImg () {
-      const { imgSrc } = this.data
-      if (!imgSrc) return
+      if (!this.data.imgSrc) return
+
       jd.getImageInfo({
-        src: imgSrc,
+        src: this.data.imgSrc,
         success: (res) => {
           // 存储img图片信息
           this.data.imgInfo = res
@@ -206,27 +209,6 @@ VueComponent({
     },
 
     /**
-     * @description 设置裁剪窗口大小
-     */
-    computeCutSize () {
-    },
-
-    /**
-     * @description 初始化裁剪框内的图片
-     */
-    initImgSize () {
-      const { INIT_IMGWIDTH, INIT_IMGHEIGHT } = this.data
-      if (INIT_IMGWIDTH && typeof INIT_IMGWIDTH === 'string' && this.data.INIT_IMGWIDTH.indexOf('%') !== -1) {
-        const width = INIT_IMGWIDTH.replace('%', '')
-        this.data.INIT_IMGWIDTH = this.data.imgWidth = this.data.info.windowWidth / 100 * width
-      }
-      if (INIT_IMGHEIGHT && typeof INIT_IMGHEIGHT === 'string' && this.data.INIT_IMGHEIGHT.indexOf('%') !== -1) {
-        const height = INIT_IMGHEIGHT.replace('%', '')
-        this.data.INIT_IMGHEIGHT = this.data.imgHeight = this.data.info.windowHeight / 100 * height
-      }
-    },
-
-    /**
      * @description canvas 初始化
      */
     initCanvas () {
@@ -234,6 +216,7 @@ VueComponent({
         this.data.ctx = jd.createCanvasContext('wd-img-cropper-canvas', this)
       }
     },
+
     /**
      * @description 图片拖动边缘检测：检测移动或缩放时 是否触碰到图片边缘位置
      */
@@ -267,6 +250,7 @@ VueComponent({
         imgScale
       })
     },
+
     /**
      * @description 缩放边缘检测：检测移动或缩放时 是否触碰到图片边缘位置
      */
@@ -286,6 +270,7 @@ VueComponent({
       }
       this.detectImgPosIsEdge(imgScale)
     },
+
     /**
      * @description 节流
      */
@@ -295,48 +280,17 @@ VueComponent({
         MOVE_THROTTLE = setTimeout(() => {
           MOVE_THROTTLE_FLAG = true
         }, 1000 / 40)
-        return MOVE_THROTTLE_FLAG
       } else {
         !MOVE_THROTTLE_FLAG && (MOVE_THROTTLE_FLAG = true)
       }
     },
-    /**
-     * @description 移动中的通用处理
-     */
-    setMoving () {
 
-    },
-    /**
-     * @description 移动结束的通用处理
-     */
-    setMoveEnd () {
-
-    },
-    /**
-     * @description {裁剪区} 开始拖动
-     */
-    handleCutTouchStart () {
-      console.log('{裁剪区} 开始拖动')
-    },
-    /**
-     * @description {裁剪区} 拖动中
-     */
-    handleCutTouchMove () {
-      // console.log('{裁剪区} 拖动中')
-    },
-    /**
-     * @description {裁剪区} 拖动结束
-     */
-    handleCutTouchEnd () {
-      // console.log('{裁剪区} 拖动结束')
-    },
     /**
      * @description {图片区} 开始拖动
      */
     handleImgTouchStart (event) {
       // 如果处于在拖动中，背景为淡色展示全部，拖动结束则为 0.85 透明度
-      IS_TOUCH_END = false
-      this.setData({ isHighlight: true })
+      this.setData({ IS_TOUCH_END: false })
       if (event.touches.length === 1) {
         // 单指拖动
         this.data.movingPosRecord[0] = {
@@ -350,15 +304,14 @@ VueComponent({
         this.data.fingerDistance = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
       }
     },
+
     /**
      * @description {图片区} 拖动中
      */
     handleImgTouchMove (event) {
-      if (IS_TOUCH_END || !MOVE_THROTTLE_FLAG) return
+      if (this.data.IS_TOUCH_END || !MOVE_THROTTLE_FLAG) return
       // 节流
       this.throttle()
-      // 通用移动事件
-      this.setMoving()
       if (event.touches.length === 1) {
         // 单指拖动
         const { x, y } = this.data.movingPosRecord[0]
@@ -382,63 +335,119 @@ VueComponent({
         this.data.fingerDistance = Math.sqrt(Math.pow(width, 2) + Math.pow(height, 2))
       }
     },
+
     /**
      * @description {图片区} 拖动结束
      */
     handleImgTouchEnd () {
-      IS_TOUCH_END = true
-      this.setData({ isHighlight: false })
-      this.setMoveEnd()
-    },
-    /**
-     * @description 图片已加载完成
-     */
-    handleImgLoaded () {
-      console.log('图片已加载')
-      this.$emit('')
-    },
-    /**
-     * @description 图片加载失败
-     */
-    handleImgLoadError () {
-      console.log('图片已加载失败')
-      this.$emit('confirm')
-    },
-    handleRotate () {
-      this.setRoate(this.data.imgAngle + 90)
-    },
-    handleCancel () {
-      this.setData({ show: false })
-      this.$emit('cancel')
-    },
-    handleConfirm () {
-      this.draw()
-      this.setData({ show: false })
-      this.$emit('confirm')
+      this.setData({ IS_TOUCH_END: true })
     },
 
     /**
-     * @description canvas绘制
+     * @description 图片已加载完成
+     */
+    handleImgLoaded (res) {
+      this.$emit('cut-loaded', res)
+    },
+
+    /**
+     * @description 图片加载失败
+     */
+    handleImgLoadError (err) {
+      this.$emit('cut-loaderror', err)
+    },
+
+    /**
+     * @description 旋转图片
+     */
+    handleRotate () {
+      this.setRoate(this.data.imgAngle + 90)
+    },
+
+    /**
+     * @description 取消裁剪图片
+     */
+    handleCancel () {
+      this.resetImg()
+      this.$emit('cancel')
+      this.setData({ show: false })
+    },
+
+    /**
+     * @description 完成裁剪
+     */
+    handleConfirm (event) {
+      this.draw()
+    },
+
+    /**
+     * @description canvas绘制，用canvas模拟裁剪框 对根据图片当前的裁剪信息进行模拟
      */
     draw () {
       if (!this.data.imgSrc) return
+      const {
+        imgSrc,
+        imgWidth,
+        imgHeight,
+        imgLeft,
+        imgTop,
+        imgScale,
+        imgAngle,
+        cutLeft,
+        cutTop,
+        cutHeight,
+        cutWidth,
+        cutScale
+      } = this.data
       const draw = () => {
-        const { imgWidth, imgHeight, imgScale, info, imgAngle } = this.data
-        const { pixelRatio } = info
         // 图片真实大小
-        const width = imgWidth * imgScale * pixelRatio
-        const height = imgHeight * imgScale * pixelRatio
+        const width = imgWidth * imgScale * cutScale
+        const height = imgHeight * imgScale * cutScale
         // 取裁剪框和图片的交集
-        const x = ''
-        const y = ''
+        const x = imgLeft - cutLeft
+        const y = imgTop - cutTop
         // 如果直接使用canvas绘制的图片会有锯齿，因此需要*设备像素比
-        // 设置（x, y）
-        this.data.ctx.translate(x * pixelRatio, y * pixelRatio)
-        // 设置
-        this.data.rotate(imgAngle * Math.PI / 180)
-        console.log(width, height)
+        // 设置（x, y）设置图片在canvas中的位置
+        this.data.ctx.translate(x * cutScale, y * cutScale)
+        // 设置 旋转角度
+        this.data.ctx.rotate(imgAngle * Math.PI / 180)
+        // drawImage 的 旋转是根据以当前图片的图片水平垂直方向为x、y轴，并在x y轴上移动
+        this.data.ctx.drawImage(imgSrc, -width / 2, -height / 2, width, height)
+        // 绘制图片
+        const _this = this
+        this.data.ctx.draw(false, () => {
+          jd.canvasToTempFilePath({
+            width: cutWidth * cutScale,
+            height: Math.round(cutHeight * cutScale),
+            destWidth: cutWidth * cutScale,
+            destHeight: Math.round(cutHeight * cutScale),
+            fileType: this.data.fileType,
+            quality: this.data.quality,
+            canvasId: 'wd-img-cropper-canvas',
+            success (res) {
+              _this.$emit('confirm', {
+                url: res.tempFilePath,
+                width: cutWidth,
+                height: cutHeight
+              })
+            },
+            fail (err) {
+              console.log('err', err)
+            }
+          }, this)
+        })
       }
-      draw()
+
+      if (this.data.ctx.width !== cutWidth || this.data.ctx.height !== cutHeight) {
+        this.setData({
+          canvasHeight: cutHeight,
+          canvasWidth: cutWidth
+        }, () => {
+          draw()
+        })
+      } else {
+        draw()
+      }
     },
     preventTouchMove () { }
   }

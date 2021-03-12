@@ -1,19 +1,18 @@
-<view id="wd-img-cropper" class="wd-img-cropper" jd:if="{{show}}" catchtouchmove='preventTouchMove'>
+<view
+  id="wd-img-cropper"
+  jd:if="{{show}}"
+  class="wd-img-cropper"
+  catchtouchmove='preventTouchMove'
+>
   <!-- 展示在用户面前的裁剪框 -->
-  <view
-    class="wd-img-cropper__wrapper"
-    bind:touchstart="handleCutTouchStart"
-    bind:touchmove="handleCutTouchMove"
-    bind:touchend="handleCutTouchEnd"
-    bind:tap="handleClick"
-  >
+  <view class="wd-img-cropper__wrapper">
     <!-- 画出裁剪框 -->
     <view class="wd-img-cropper__cut">
       <!-- 上方阴影块 -->
-      <view class="wd-img-cropper__cut--top {{ isHighlight ? 'is-hightlight' : '' }}" style="height: {{cutTop}}px;"></view>
+      <view class="wd-img-cropper__cut--top {{ IS_TOUCH_END ? '' : 'is-hightlight' }}" style="height: {{cutTop}}px;"></view>
       <view class="wd-img-cropper__cut--middle">
         <!-- 左侧阴影块 -->
-        <view class="wd-img-cropper__cut--left {{ isHighlight ? 'is-hightlight' : '' }}" style="width: {{cutLeft}}px; height: {{cutWidth}}px;"></view>
+        <view class="wd-img-cropper__cut--left {{ IS_TOUCH_END ? '' : 'is-hightlight' }}" style="width: {{cutLeft}}px; height: {{cutWidth}}px;"></view>
         <!-- 裁剪框 -->
         <view class="wd-img-cropper__cut--body" style="width: {{cutWidth}}px; height: {{cutHeight}}px;">
           <!-- 内部网格线 -->
@@ -26,11 +25,11 @@
           <view class="is-right-bottom"></view>
         </view>
         <!-- 右侧阴影块 -->
-        <view class="wd-img-cropper__cut--right {{ isHighlight ? 'is-hightlight' : '' }}"></view>
+        <view class="wd-img-cropper__cut--right {{ IS_TOUCH_END ? '' : 'is-hightlight' }}"></view>
       </view>
 
       <!-- 底部阴影块 --> 
-      <view class="wd-img-cropper__cut--bottom {{ isHighlight ? 'is-hightlight' : '' }}"></view>
+      <view class="wd-img-cropper__cut--bottom {{ IS_TOUCH_END ? '' : 'is-hightlight' }}"></view>
     </view>
     <!-- 展示的传过来的图片: 控制图片的旋转角度(rotate)、缩放程度(imgScale)、移动位置(translate) -->
     <image
@@ -50,7 +49,7 @@
     canvas-id="wd-img-cropper-canvas"
     class="wd-img-cropper__canvas"
     disable-scroll="true"
-    style="width: {{canvasWidth * info.pixelRatio}}px; height: {{canvasHeight * info.pixelRatio}}px;"
+    style="width: {{canvasWidth * canvasScale}}px; height: {{canvasHeight * canvasScale}}px;"
   />
   <!-- 下方按钮 -->
   <view class="wd-img-cropper__footer">

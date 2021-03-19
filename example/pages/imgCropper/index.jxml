@@ -1,11 +1,22 @@
-<wd-img-cropper id="wd-img-cropper" show="{{show}}" img-src="{{src}}" bindconfirm="confirm"></wd-img-cropper>
+<wd-img-cropper
+  id="wd-img-cropper"
+  show="{{show}}"
+  img-src="{{src}}"
+  bind:confirm="handleConfirm"
+  bind:cancel="handleCancel"
+  bind:imgloaderror="imgLoaderror"
+  bind:imgloaded="imgLoaded">
+</wd-img-cropper>
 <view class="profile">
-  <!-- <image src="{{imgSrc}}" style="width: 200px; height: 200px;" mode="aspectFit" role="img"/> -->
-	<wd-img round width="200px" height="200px" src="{{ imgSrc }}" mode="aspectFit" custom-class="profile-img" bindtap="preview" />
+  <view jd:if="!imgSrc">
+    2345678
+    <wd-icon name="picture"></wd-icon>
+  </view>
+	<wd-img jd:if="imgSrc" round width="200px" height="200px" src="{{ imgSrc }}" mode="aspectFit" custom-class="profile-img" bindtap="preview" />
 	<wd-button bindtap="upload">上传图片</wd-button>
 </view>
-<button bindtap="test">test</button>
+<!-- <button bindtap="test">test</button>
 <button bindtap="changeX">changeX</button>
 <button bindtap="changeY">changeY</button>
 <canvas canvas-id="myCanvas" style="border: 1px solid;width: 300px;height: 300px;" />
-<image src="{{src}}" style="height: 400px;width: 400px;"/>
+<image src="{{src}}" style="height: 400px;width: 400px;"/> -->

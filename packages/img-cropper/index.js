@@ -141,6 +141,7 @@ VueComponent({
       // 设置旋转后需要判定旋转后宽高是否不符合贴边的标准
       this.detectImgPosIsEdge()
     },
+
     /**
      * @description 对外暴露：初始化图片的大小和角度以及距离
      */
@@ -170,7 +171,6 @@ VueComponent({
           this.computeImgSize()
           // 初始化尺寸
           this.resetImg()
-          // 绘制canvas
         },
         fail: () => {
           this.setData({ imgSrc: '' })
@@ -347,14 +347,14 @@ VueComponent({
      * @description 图片已加载完成
      */
     handleImgLoaded (res) {
-      this.$emit('cut-loaded', res)
+      this.$emit('imgloaded', res)
     },
 
     /**
      * @description 图片加载失败
      */
     handleImgLoadError (err) {
-      this.$emit('cut-loaderror', err)
+      this.$emit('imgloaderror', err)
     },
 
     /**
@@ -378,6 +378,39 @@ VueComponent({
      */
     handleConfirm (event) {
       this.draw()
+    },
+
+    /**
+     * @description canvas 绘制图片输出成文件类型
+     */
+    canvasToImage () {
+      const _this = this
+      const {
+        fileType,
+        quality,
+        cutHeight,
+        cutWidth,
+        cutScale
+      } = this.data
+      jd.canvasToTempFilePath({
+        width: cutWidth * cutScale,
+        height: Math.round(cutHeight * cutScale),
+        destWidth: cutWidth * cutScale,
+        destHeight: Math.round(cutHeight * cutScale),
+        fileType,
+        quality,
+        canvasId: 'wd-img-cropper-canvas',
+        success (res) {
+          _this.$emit('confirm', {
+            url: res.tempFilePath,
+            width: cutWidth,
+            height: cutHeight
+          })
+        },
+        fail (err) {
+          console.log('err', err)
+        }
+      }, this)
     },
 
     /**
@@ -414,27 +447,8 @@ VueComponent({
         // drawImage 的 旋转是根据以当前图片的图片水平垂直方向为x、y轴，并在x y轴上移动
         this.data.ctx.drawImage(imgSrc, -width / 2, -height / 2, width, height)
         // 绘制图片
-        const _this = this
         this.data.ctx.draw(false, () => {
-          jd.canvasToTempFilePath({
-            width: cutWidth * cutScale,
-            height: Math.round(cutHeight * cutScale),
-            destWidth: cutWidth * cutScale,
-            destHeight: Math.round(cutHeight * cutScale),
-            fileType: this.data.fileType,
-            quality: this.data.quality,
-            canvasId: 'wd-img-cropper-canvas',
-            success (res) {
-              _this.$emit('confirm', {
-                url: res.tempFilePath,
-                width: cutWidth,
-                height: cutHeight
-              })
-            },
-            fail (err) {
-              console.log('err', err)
-            }
-          }, this)
+          this.canvasToImage()
         })
       }
 

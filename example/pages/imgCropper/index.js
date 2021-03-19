@@ -6,6 +6,48 @@ Page({
     changeX: 0,
     changeY: 0
   },
+  upload () {
+    const that = this
+    this.wdcropper = this.selectComponent('#wd-img-cropper')
+    jd.chooseImage({
+      count: 1,
+      sizeType: ['original', 'compressed'],
+      sourceType: ['album', 'camera'],
+      success (res) {
+        jd.showLoading({
+          title: '加载中'
+        })
+        const tempFilePaths = res.tempFilePaths[0]
+        // 重置图片角度、缩放、位置
+        that.wdcropper.resetImg()
+        jd.hideLoading()
+        that.setData({
+          show: true,
+          src: tempFilePaths,
+          imgSrc: tempFilePaths
+        })
+      }
+    })
+  },
+  handleConfirm (event) {
+    const { url } = event.detail
+    console.log('完成')
+    this.setData({
+      show: false,
+      src: url,
+      imgSrc: url
+    })
+  },
+  imgLoaderror (res) {
+    console.log('加载失败')
+  },
+  imgLoaded (res) {
+    console.log('加载成功')
+  },
+  handleCancel (event) {
+    console.log('取消', event)
+  },
+  // TODO 测试位置
   onLoad () {
     // 创建canvas绘图上下文
     this.ctx = jd.createCanvasContext('myCanvas')
@@ -63,42 +105,6 @@ Page({
         })
       }
     })
-  },
-  upload () {
-    const that = this
-
-    this.wdcropper = this.selectComponent('#wd-img-cropper')
-    jd.chooseImage({
-      count: 1,
-      sizeType: ['original', 'compressed'],
-      sourceType: ['album', 'camera'],
-      success (res) {
-        jd.showLoading({
-          title: '加载中'
-        })
-        const tempFilePaths = res.tempFilePaths[0]
-        // 重置图片角度、缩放、位置
-        that.wdcropper.resetImg()
-        jd.hideLoading()
-        that.setData({
-          show: true,
-          src: tempFilePaths,
-          imgSrc: tempFilePaths
-        })
-      }
-    })
-  },
-  confirm (event) {
-    const { url } = event.detail
-    console.log('345678', event)
-    this.setData({
-      show: false,
-      src: url,
-      imgSrc: url
-    })
-  },
-  cropperload (e) {
-    console.log('cropper初始化完成')
   },
   preview () {
     jd.previewImage({
